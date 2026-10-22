@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+  <title>Chipper call</title>
+  <!-- The floating circle shown while a call is going and the app is minimised. Click it to go back to the call; drag it to move it. -->
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; -webkit-user-select: none; user-select: none; }
+    #pic { position: absolute; inset: 6px; border-radius: 50%; background: #111214 center / cover no-repeat; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
+    #x { position: absolute; top: 4px; right: 4px; width: 26px; height: 26px; border: 0; border-radius: 50%; background: rgba(30, 31, 34, 0.9); color: #fff; font-size: 13px; cursor: pointer; opacity: 0; transition: opacity 0.15s; display: flex; align-items: center; justify-content: center; padding: 0; }
+    body:hover #x { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="pic" title="Back to the call"></div>
+  <button id="x" title="Hide (the call keeps going)">✕</button>
+  <script>
+    const pic = document.getElementById("pic");
+    window.chipperBubble.onFrame((src) => { pic.style.backgroundImage = 'url("' + src + '")'; });
+    document.getElementById("x").onclick = (e) => { e.stopPropagation(); window.chipperBubble.close(); };
+    // Drag to move; a click without moving opens the call
+    pic.addEventListener("pointerdown", (e) => {
+      let lx = e.screenX, ly = e.screenY, moved = 0;
+      pic.setPointerCapture(e.pointerId);
+      const move = (ev) => {
+        const dx = ev.screenX - lx, dy = ev.screenY - ly;
+        lx = ev.screenX; ly = ev.screenY; moved += Math.abs(dx) + Math.abs(dy);
+        if (moved > 4) window.chipperBubble.drag(dx, dy);
+      };
+      const up = () => {
+        pic.removeEventListener("pointermove", move); pic.removeEventListener("pointerup", up);
+        if (moved <= 4) window.chipperBubble.open();
+      };
+      pic.addEventListener("pointermove", move); pic.addEventListener("pointerup", up);
+    });
+  </script>
+</body>
+</html>

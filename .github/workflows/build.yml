@@ -1,0 +1,126 @@
+# Builds Chipper for Windows, Mac and Linux on GitHub's computers and publishes them as a new release.
+# Run it from the Actions tab → "Build the apps" → Run workflow. It uses the version in package.json,
+# so raise that number before each new build.
+# The app's files can be in a "chipper-desktop" folder or at the top of the repository; both work.
+# The Android app: a .apk file uploaded to the repository is used (any name); if there is none, Chipper.apk from the last release.
+name: Build the apps
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    name: Check settings
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      dir: ${{ steps.dir.outputs.dir }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Find the app's files
+        id: dir
+        run: |
+          if [ -f chipper-desktop/package.json ]; then D=chipper-desktop; elif [ -f package.json ]; then D=.; else
+            echo "::error::Can't find the app's package.json (at the top of the repository or in a chipper-desktop folder)."; exit 1; fi
+          echo "dir=$D" >> "$GITHUB_OUTPUT"
+          echo "The app's files are in: $D"
+      - name: Website link is set
+        working-directory: ${{ steps.dir.outputs.dir }}
+        run: |
+          node -e '
+            const u = String(require("./settings.json").url || "");
+            if (!/^https?:\/\/[^/]+$/.test(u) || u.includes("YOUR-APP")) {
+              console.log("::error::Put your Chipper website link in settings.json first (like https://chipper-abcd.onrender.com, all small letters, with no / at the end).");
+              process.exit(1);
+            }
+            console.log("Website: " + u);'
+      - name: Version is new
+        id: v
+        working-directory: ${{ steps.dir.outputs.dir }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=$(node -p "require('./package.json').version")
+          if gh release view "v$V" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "::error::There is already a release v$V. Open package.json, raise \"version\" (for example to the next number) and run this again."
+            exit 1
+          fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "Building version $V"
+
+  build:
+    name: Build for ${{ matrix.name }}
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            target: --win
+            file: dist/Chipper-Setup.exe
+          - name: Mac
+            os: macos-latest
+            target: --mac
+            file: dist/Chipper-Mac.dmg
+          - name: Linux
+            os: ubuntu-latest
+            target: --linux
+            file: dist/Chipper-Linux.AppImage
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ${{ needs.check.outputs.dir }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npx electron-builder ${{ matrix.target }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false" # no paid signing certificates (see build/after-pack.js for the Mac)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ needs.check.outputs.dir }}/${{ matrix.file }}
+          if-no-files-found: error
+
+  release:
+    name: Publish the release
+    needs: [check, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: files
+          merge-multiple: true
+      - name: Add the Android app
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          APK=$(find . -path ./files -prune -o -path ./node_modules -prune -o -type f -iname '*.apk' -print | head -n 1)
+          if [ -n "$APK" ]; then
+            echo "Using the Android app from the repository: $APK"
+            cp "$APK" files/Chipper.apk
+          else
+            gh release download --repo "$GITHUB_REPOSITORY" --pattern Chipper.apk --dir files \
+              && echo "Using Chipper.apk from the last release" \
+              || echo "::warning::No Android app found. Upload your .apk to the repository and run this again, or add Chipper.apk to the release by hand."
+          fi
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ needs.check.outputs.version }}
+        run: |
+          ls -la files
+          gh release create "v$V" files/* --repo "$GITHUB_REPOSITORY" --title "Chipper $V" --latest --notes "Download the one for your device. The download buttons on the Chipper website always point to the newest release.
+
+          - **Chipper-Setup.exe**: Windows
+          - **Chipper-Mac.dmg**: Mac (Apple chips and Intel)
+          - **Chipper-Linux.AppImage**: Linux
+          - **Chipper.apk**: Android"

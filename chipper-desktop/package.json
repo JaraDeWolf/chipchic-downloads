@@ -1,7 +1,8 @@
 {
   "name": "chipper-desktop",
   "productName": "Chipper",
-  "version": "2.0.0",
+  "desktopName": "chipper.desktop",
+  "version": "2.1.0",
   "description": "Chipper for Windows, Mac and Linux: a window that opens your Chipper website",
   "main": "main.js",
   "author": "Chipper",
@@ -10,19 +11,46 @@
     "start": "electron ."
   },
   "devDependencies": {
-    "electron": "33.2.1",
-    "electron-builder": "25.1.8"
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3"
   },
   "build": {
     "appId": "com.chipper.desktop",
     "productName": "Chipper",
-    "files": ["main.js", "preload.js", "loading.html", "bubble.html", "bubble-preload.js", "settings.json", "icons/**"],
-    "directories": { "output": "dist" },
+    "files": [
+      "main.js",
+      "preload.js",
+      "loading.html",
+      "bubble.html",
+      "bubble-preload.js",
+      "settings.json",
+      "icons/**"
+    ],
+    "directories": {
+      "output": "dist"
+    },
     "afterPack": "build/after-pack.js",
-    "win": { "target": "nsis", "icon": "icons/icon.png", "artifactName": "Chipper-Setup.exe" },
-    "nsis": { "oneClick": true, "perMachine": false, "createDesktopShortcut": true, "createStartMenuShortcut": true, "runAfterFinish": true },
+    "win": {
+      "target": "nsis",
+      "icon": "icons/icon.png",
+      "artifactName": "Chipper-Setup.exe"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true
+    },
     "mac": {
-      "target": [{ "target": "dmg", "arch": ["universal"] }],
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
       "icon": "icons/icon.png",
       "category": "public.app-category.social-networking",
       "artifactName": "Chipper-Mac.dmg",
@@ -32,13 +60,23 @@
         "NSCameraUsageDescription": "Chipper uses the camera for video calls and taking photos."
       }
     },
-    "dmg": { "title": "Chipper" },
+    "dmg": {
+      "title": "Chipper"
+    },
     "linux": {
-      "target": [{ "target": "AppImage", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "icon": "icons/icon.png",
       "category": "Network",
       "synopsis": "Chat with your friends and servers",
-      "artifactName": "Chipper-Linux.AppImage"
+      "artifactName": "Chipper-Linux.AppImage",
+      "syncDesktopName": true
     }
   }
 }

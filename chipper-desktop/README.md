@@ -14,11 +14,12 @@ The apps are small windows that open the Chipper website, so they update by them
 
 ## For the owner: making a new version
 
-You only need this when you change the app's icon, name or website link. Changes to the website don't need a new app.
+You only need this when you change the app's icon, name or website link, or have a new Android file. Changes to the website don't need a new app.
 
-1. In this repository, open `package.json` and raise `"version"` (for example `2.0.0` → `2.0.1`). Click **Commit changes**.
-2. Open the **Actions** tab → **Build the apps** → **Run workflow** → **Run workflow**.
-3. Wait about 15 minutes. GitHub builds Windows, Mac and Linux and publishes them as a new release, together with `Chipper.apk` from the last release.
+1. Open `package.json` (in the `chipper-desktop` folder), click the pencil, raise `"version"` (for example `2.1.0` → `2.1.1`) and click **Commit changes**.
+2. New Android file? Delete the old `.apk` from the repository and upload the new one (any name).
+3. Open the **Actions** tab → **Build the apps** → **Run workflow** → **Run workflow**.
+4. Wait about 15 minutes. GitHub builds Windows, Mac and Linux and publishes them as a new release, together with the Android file.
 
 The website link the apps open is in `settings.json`.
 
@@ -29,4 +30,4 @@ The website link the apps open is in `settings.json`.
 - `loading.html`: the "Connecting…" screen while the website wakes up
 - `bubble.html`, `bubble-preload.js`: the floating circle during a call while the app is minimised
 - `build/after-pack.js`: gives the Mac app a free signature so Macs allow "Open Anyway"
-- `.github/workflows/build.yml`: the instructions GitHub follows to build everything
+- `.github/workflows/build.yml` (at the top of the repository): the instructions GitHub follows to build everything

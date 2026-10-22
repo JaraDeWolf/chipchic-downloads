@@ -1,8 +1,8 @@
-# Builds Chipper for Windows, Mac and Linux on GitHub's computers and publishes them as a new release.
+# Builds ChipChic for Windows, Mac and Linux on GitHub's computers and publishes them as a new release.
 # Run it from the Actions tab → "Build the apps" → Run workflow. It uses the version in package.json,
 # so raise that number before each new build.
-# The app's files can be in a "chipper-desktop" folder or at the top of the repository; both work.
-# The Android app: a .apk file uploaded to the repository is used (any name); if there is none, Chipper.apk from the last release.
+# The app's files can be in a "chipchic-desktop" folder (or "chipper-desktop", its name before the rename) or at the top of the repository.
+# The Android app: a .apk file uploaded to the repository is used (any name); if there is none, ChipChic.apk from the last release.
 name: Build the apps
 
 on:
@@ -23,8 +23,8 @@ jobs:
       - name: Find the app's files
         id: dir
         run: |
-          if [ -f chipper-desktop/package.json ]; then D=chipper-desktop; elif [ -f package.json ]; then D=.; else
-            echo "::error::Can't find the app's package.json (at the top of the repository or in a chipper-desktop folder)."; exit 1; fi
+          if [ -f chipchic-desktop/package.json ]; then D=chipchic-desktop; elif [ -f chipper-desktop/package.json ]; then D=chipper-desktop; elif [ -f package.json ]; then D=.; else
+            echo "::error::Can't find the app's package.json (at the top of the repository, or in a chipchic-desktop or chipper-desktop folder)."; exit 1; fi
           echo "dir=$D" >> "$GITHUB_OUTPUT"
           echo "The app's files are in: $D"
       - name: Website link is set
@@ -33,7 +33,7 @@ jobs:
           node -e '
             const u = String(require("./settings.json").url || "");
             if (!/^https?:\/\/[^/]+$/.test(u) || u.includes("YOUR-APP")) {
-              console.log("::error::Put your Chipper website link in settings.json first (like https://chipper-abcd.onrender.com, all small letters, with no / at the end).");
+              console.log("::error::Put your ChipChic website link in settings.json first (like https://chipchic-abcd.onrender.com, all small letters, with no / at the end).");
               process.exit(1);
             }
             console.log("Website: " + u);'
@@ -61,15 +61,15 @@ jobs:
           - name: Windows
             os: windows-latest
             target: --win
-            file: dist/Chipper-Setup.exe
+            file: dist/ChipChic-Setup.exe
           - name: Mac
             os: macos-latest
             target: --mac
-            file: dist/Chipper-Mac.dmg
+            file: dist/ChipChic-Mac.dmg
           - name: Linux
             os: ubuntu-latest
             target: --linux
-            file: dist/Chipper-Linux.AppImage
+            file: dist/ChipChic-Linux.AppImage
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -106,11 +106,11 @@ jobs:
           APK=$(find . -path ./files -prune -o -path ./node_modules -prune -o -type f -iname '*.apk' -print | head -n 1)
           if [ -n "$APK" ]; then
             echo "Using the Android app from the repository: $APK"
-            cp "$APK" files/Chipper.apk
+            cp "$APK" files/ChipChic.apk
           else
-            gh release download --repo "$GITHUB_REPOSITORY" --pattern Chipper.apk --dir files \
-              && echo "Using Chipper.apk from the last release" \
-              || echo "::warning::No Android app found. Upload your .apk to the repository and run this again, or add Chipper.apk to the release by hand."
+            gh release download --repo "$GITHUB_REPOSITORY" --pattern ChipChic.apk --dir files \
+              && echo "Using ChipChic.apk from the last release" \
+              || echo "::warning::No Android app found. Upload your .apk to the repository and run this again, or add ChipChic.apk to the release by hand."
           fi
       - name: Publish
         env:
@@ -118,9 +118,9 @@ jobs:
           V: ${{ needs.check.outputs.version }}
         run: |
           ls -la files
-          gh release create "v$V" files/* --repo "$GITHUB_REPOSITORY" --title "Chipper $V" --latest --notes "Download the one for your device. The download buttons on the Chipper website always point to the newest release.
+          gh release create "v$V" files/* --repo "$GITHUB_REPOSITORY" --title "ChipChic $V" --latest --notes "Download the one for your device. The download buttons on the ChipChic website always point to the newest release.
 
-          - **Chipper-Setup.exe**: Windows
-          - **Chipper-Mac.dmg**: Mac (Apple chips and Intel)
-          - **Chipper-Linux.AppImage**: Linux
-          - **Chipper.apk**: Android"
+          - **ChipChic-Setup.exe**: Windows
+          - **ChipChic-Mac.dmg**: Mac (Apple chips and Intel)
+          - **ChipChic-Linux.AppImage**: Linux
+          - **ChipChic.apk**: Android"

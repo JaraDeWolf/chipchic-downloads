@@ -1,11 +1,11 @@
 {
-  "name": "chipper-desktop",
-  "productName": "Chipper",
-  "desktopName": "chipper.desktop",
-  "version": "2.1.0",
-  "description": "Chipper for Windows, Mac and Linux: a window that opens your Chipper website",
+  "name": "chipchic-desktop",
+  "productName": "ChipChic",
+  "desktopName": "chipchic.desktop",
+  "version": "2.2.0",
+  "description": "ChipChic for Windows, Mac and Linux: a window that opens your ChipChic website",
   "main": "main.js",
-  "author": "Chipper",
+  "author": "ChipChic",
   "private": true,
   "scripts": {
     "start": "electron ."
@@ -16,7 +16,7 @@
   },
   "build": {
     "appId": "com.chipper.desktop",
-    "productName": "Chipper",
+    "productName": "ChipChic",
     "files": [
       "main.js",
       "preload.js",
@@ -33,7 +33,7 @@
     "win": {
       "target": "nsis",
       "icon": "icons/icon.png",
-      "artifactName": "Chipper-Setup.exe"
+      "artifactName": "ChipChic-Setup.exe"
     },
     "nsis": {
       "oneClick": true,
@@ -53,15 +53,15 @@
       ],
       "icon": "icons/icon.png",
       "category": "public.app-category.social-networking",
-      "artifactName": "Chipper-Mac.dmg",
+      "artifactName": "ChipChic-Mac.dmg",
       "identity": null,
       "extendInfo": {
-        "NSMicrophoneUsageDescription": "Chipper uses the microphone for voice calls and voice channels.",
-        "NSCameraUsageDescription": "Chipper uses the camera for video calls and taking photos."
+        "NSMicrophoneUsageDescription": "ChipChic uses the microphone for voice calls and voice channels.",
+        "NSCameraUsageDescription": "ChipChic uses the camera for video calls and taking photos."
       }
     },
     "dmg": {
-      "title": "Chipper"
+      "title": "ChipChic"
     },
     "linux": {
       "target": [
@@ -75,7 +75,7 @@
       "icon": "icons/icon.png",
       "category": "Network",
       "synopsis": "Chat with your friends and servers",
-      "artifactName": "Chipper-Linux.AppImage",
+      "artifactName": "ChipChic-Linux.AppImage",
       "syncDesktopName": true
     }
   }

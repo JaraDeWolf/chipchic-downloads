@@ -1,8 +1,8 @@
-// The small bridge between the Chipper website and the app (the website sees it as window.chipperDesktop).
+// The small bridge between the ChipChic website and the app (the website sees it as window.chipchicDesktop).
 // Kept small on purpose: the page can't touch your files or anything else on the computer.
 const { contextBridge, ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld("chipperDesktop", {
+contextBridge.exposeInMainWorld("chipchicDesktop", {
   platform: process.platform,                                        // "win32", "darwin" (Mac) or "linux"
   show: () => ipcRenderer.send("show"),                              // bring the window back (clicking a notification)
   showCall: () => ipcRenderer.send("show-call"),                     // a call is coming in: pop the window up over other apps

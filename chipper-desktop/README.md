@@ -1,22 +1,22 @@
-# Chipper apps
+# ChipChic apps
 
-Downloads for **Chipper**: get the newest version from **[Releases](../../releases/latest)**.
+Downloads for **ChipChic**: get the newest version from **[Releases](../../releases/latest)**.
 
 | Device | File |
 |---|---|
-| Windows | `Chipper-Setup.exe` |
-| Mac (Apple chips and Intel) | `Chipper-Mac.dmg` |
-| Linux | `Chipper-Linux.AppImage` |
-| Android | `Chipper.apk` |
+| Windows | `ChipChic-Setup.exe` |
+| Mac (Apple chips and Intel) | `ChipChic-Mac.dmg` |
+| Linux | `ChipChic-Linux.AppImage` |
+| Android | `ChipChic.apk` |
 | iPhone / iPad | Open the website in Safari → Share → **Add to Home Screen** |
 
-The apps are small windows that open the Chipper website, so they update by themselves whenever the website does.
+The apps are small windows that open the ChipChic website, so they update by themselves whenever the website does.
 
 ## For the owner: making a new version
 
 You only need this when you change the app's icon, name or website link, or have a new Android file. Changes to the website don't need a new app.
 
-1. Open `package.json` (in the `chipper-desktop` folder), click the pencil, raise `"version"` (for example `2.1.0` → `2.1.1`) and click **Commit changes**.
+1. Open `package.json` (in the app's folder: `chipchic-desktop`, or `chipper-desktop` if you kept the old name), click the pencil, raise `"version"` (for example `2.1.0` → `2.1.1`) and click **Commit changes**.
 2. New Android file? Delete the old `.apk` from the repository and upload the new one (any name).
 3. Open the **Actions** tab → **Build the apps** → **Run workflow** → **Run workflow**.
 4. Wait about 15 minutes. GitHub builds Windows, Mac and Linux and publishes them as a new release, together with the Android file.

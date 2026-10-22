@@ -1,4 +1,4 @@
-// Chipper for Windows, Mac and Linux: a window that opens your Chipper website (the link is in settings.json).
+// ChipChic for Windows, Mac and Linux: a window that opens your ChipChic website (the link is in settings.json).
 // All the chat code lives on the website, so the app updates by itself whenever the website does.
 const { app, BrowserWindow, Tray, Menu, ipcMain, shell, session, desktopCapturer, nativeImage, screen } = require("electron");
 const path = require("path");
@@ -6,7 +6,8 @@ const fs = require("fs");
 const os = require("os");
 
 const IS_MAC = process.platform === "darwin", IS_WIN = process.platform === "win32", IS_LINUX = process.platform === "linux";
-const APP_ID = "com.chipper.desktop"; // Windows needs this for notifications to show under the app's name
+const APP_ID = "com.chipper.desktop"; // Windows needs this for notifications to show under the app's name. It stays the same as
+// before the rename to ChipChic: that's how the Windows installer knows to replace the old Chipper app instead of adding a second one.
 let siteUrl = "";
 try { siteUrl = String(JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json"), "utf8")).url || "").trim().replace(/\/+$/, ""); } catch {}
 const linkOk = /^https?:\/\/[^/]+$/.test(siteUrl) && !siteUrl.includes("YOUR-APP");
@@ -15,6 +16,28 @@ const isOurs = (url) => { try { return !!siteOrigin && new URL(url).origin === s
 const startHidden = process.argv.includes("--hidden") || (IS_MAC && app.getLoginItemSettings().wasOpenedAsHidden); // started with the computer
 
 let win = null, tray = null, bubble = null, quitting = false, inCall = false, lastFrame = "";
+
+// Moving from Chipper (the app's old name): the first time ChipChic opens, it copies the old app's saved data, so you stay
+// logged in and the window keeps its size. Not the old app's "already running" lock files: if the old app is still open,
+// copying those would make ChipChic think it's already running. On Linux, "start when you log in" moves over too.
+(function moveFromChipper() {
+  try {
+    const now = app.getPath("userData"), old = path.join(path.dirname(now), "Chipper");
+    const fresh = !fs.existsSync(path.join(now, "Local State")) && !fs.existsSync(path.join(now, "Cookies")); // nothing saved yet (Electron makes the empty folder itself)
+    if (old !== now && fs.existsSync(old) && fresh && !fs.existsSync(path.join(now, ".moved-from-chipper"))) {
+      fs.cpSync(old, now, { recursive: true, force: true, filter: (src) => !/^(Singleton(Lock|Socket|Cookie)|lockfile)$/i.test(path.basename(src)) });
+      fs.writeFileSync(path.join(now, ".moved-from-chipper"), new Date().toISOString()); // only once
+    }
+  } catch {}
+  try {
+    if (!IS_LINUX) return;
+    const dir = path.join(os.homedir(), ".config", "autostart"), oldFile = path.join(dir, "chipper.desktop"), newFile = path.join(dir, "chipchic.desktop");
+    if (fs.existsSync(oldFile) && !fs.existsSync(newFile)) {
+      fs.writeFileSync(newFile, ["[Desktop Entry]", "Type=Application", "Name=ChipChic", 'Exec="' + (process.env.APPIMAGE || process.execPath) + '" --hidden', "X-GNOME-Autostart-enabled=true", ""].join("\n"));
+      fs.unlinkSync(oldFile);
+    }
+  } catch {}
+})();
 
 // Only one copy runs: opening it again brings the window back (also how you get it back on Linux desktops without a tray)
 if (!app.requestSingleInstanceLock()) { app.quit(); }
@@ -48,7 +71,7 @@ function createWindow(visible) {
   const b = savedBounds();
   win = new BrowserWindow({
     width: b.width || 1200, height: b.height || 800, x: b.x, y: b.y, minWidth: 380, minHeight: 500,
-    show: false, title: "Chipper", backgroundColor: "#1e1f22", autoHideMenuBar: true,
+    show: false, title: "ChipChic", backgroundColor: "#1e1f22", autoHideMenuBar: true,
     icon: IS_LINUX ? path.join(__dirname, "icons", "icon.png") : undefined,
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false },
   });
@@ -111,9 +134,9 @@ function setUpTray() {
   const img = IS_MAC ? nativeImage.createFromPath(path.join(__dirname, "icons", "trayTemplate.png")) : nativeImage.createFromPath(path.join(__dirname, "icons", IS_LINUX ? "logo.png" : "tray.png"));
   if (IS_MAC) img.setTemplateImage(true);
   try { tray = new Tray(IS_LINUX ? img.resize({ width: 24, height: 24 }) : img); } catch { tray = null; return; } // some Linux desktops have no tray
-  tray.setToolTip("Chipper");
+  tray.setToolTip("ChipChic");
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: "Open Chipper", click: () => showWindow() },
+    { label: "Open ChipChic", click: () => showWindow() },
     { label: "Reload", click: () => { showWindow(); win.webContents.reload(); } },
     { type: "separator" },
     { label: "Quit", click: () => quitApp() },
@@ -121,7 +144,7 @@ function setUpTray() {
   if (!IS_MAC) tray.on("click", () => (win && !win.isDestroyed() && win.isVisible() && !win.isMinimized() && win.isFocused() ? win.hide() : showWindow()));
 }
 
-// ---------- Camera, microphone, notifications and screen sharing: only for your Chipper website ----------
+// ---------- Camera, microphone, notifications and screen sharing: only for your ChipChic website ----------
 function setUpPermissions() {
   const allowed = new Set(["media", "notifications", "clipboard-read", "clipboard-sanitized-write", "fullscreen", "display-capture", "speaker-selection"]);
   session.defaultSession.setPermissionRequestHandler((wc, perm, cb, details) => cb(allowed.has(perm) && isOurs(details.requestingUrl || wc.getURL())));
@@ -134,7 +157,7 @@ function setUpPermissions() {
     try {
       if (!isOurs(request.frame ? request.frame.url : win.webContents.getURL())) return callback({});
       const sources = await desktopCapturer.getSources({ types: ["screen", "window"], thumbnailSize: { width: 320, height: 180 }, fetchWindowIcons: false });
-      const list = sources.filter((s) => s.name !== "Chipper" || s.id.startsWith("screen")).map((s) => ({ id: s.id, name: s.name || "Screen", thumb: s.thumbnail.toDataURL() }));
+      const list = sources.filter((s) => s.name !== "ChipChic" || s.id.startsWith("screen")).map((s) => ({ id: s.id, name: s.name || "Screen", thumb: s.thumbnail.toDataURL() }));
       if (!list.length) return callback({}); // Mac: Screen Recording isn't allowed yet (System Settings → Privacy & Security)
       const id = nextId++;
       const answer = new Promise((resolve) => waiting.set(id, resolve));
@@ -171,7 +194,7 @@ ipcMain.on("minimize", () => { if (inCall) { win.minimize(); showBubble(); } els
 ipcMain.on("in-call", (e, on) => { inCall = !!on; if (!inCall) hideBubble(); else if (!win.isVisible() || win.isMinimized()) showBubble(); });
 
 // Start when the computer starts (hidden, so it just sits in the tray)
-const linuxAutostartFile = () => path.join(os.homedir(), ".config", "autostart", "chipper.desktop");
+const linuxAutostartFile = () => path.join(os.homedir(), ".config", "autostart", "chipchic.desktop");
 ipcMain.handle("get-auto-start", () => {
   if (IS_LINUX) return fs.existsSync(linuxAutostartFile());
   return !!app.getLoginItemSettings(IS_WIN ? { args: ["--hidden"] } : undefined).openAtLogin;
@@ -181,7 +204,7 @@ ipcMain.handle("set-auto-start", (e, on) => {
     const exe = process.env.APPIMAGE || process.execPath;
     if (on) {
       fs.mkdirSync(path.dirname(linuxAutostartFile()), { recursive: true });
-      fs.writeFileSync(linuxAutostartFile(), ["[Desktop Entry]", "Type=Application", "Name=Chipper", 'Exec="' + exe + '" --hidden', "X-GNOME-Autostart-enabled=true", ""].join("\n"));
+      fs.writeFileSync(linuxAutostartFile(), ["[Desktop Entry]", "Type=Application", "Name=ChipChic", 'Exec="' + exe + '" --hidden', "X-GNOME-Autostart-enabled=true", ""].join("\n"));
     } else { try { fs.unlinkSync(linuxAutostartFile()); } catch {} }
     return fs.existsSync(linuxAutostartFile());
   }

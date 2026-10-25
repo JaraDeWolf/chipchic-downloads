@@ -2,7 +2,7 @@
   "name": "chipchic-desktop",
   "productName": "ChipChic",
   "desktopName": "chipchic.desktop",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "ChipChic for Windows, Mac and Linux: a window that opens your ChipChic website",
   "main": "main.js",
   "author": "ChipChic",
